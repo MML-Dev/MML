@@ -131,6 +131,8 @@ void SoundStream::play()
     // Start updating the stream in a separate thread to avoid blocking the application
     m_isStreaming = true;
     m_threadStartState = Status::Playing;
+    if (m_thread.joinable())
+        m_thread.join();
     m_thread = std::thread([this]
     {
         streamData();
@@ -225,6 +227,8 @@ void SoundStream::setPlayingOffset(Time timeOffset)
 
     m_isStreaming = true;
     m_threadStartState = oldStatus;
+    if (m_thread.joinable())
+        m_thread.join();
     m_thread = std::thread([this]
     {
         streamData();
@@ -289,7 +293,7 @@ void SoundStream::streamData()
 
     // Create the buffers
     alCheck(alGenBuffers(BufferCount, m_buffers));
-    for (auto& buffer : m_buffers)
+    for (auto& buffer : m_bufferSeeks)
         buffer = NoLoop;
 
     // Fill the queue
